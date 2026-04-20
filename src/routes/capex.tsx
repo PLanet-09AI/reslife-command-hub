@@ -53,7 +53,7 @@ function CapexPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="residence" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
-                  <Tooltip formatter={(v: number) => `R ${v.toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip formatter={(v) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="budget" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="actual" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
@@ -69,7 +69,7 @@ function CapexPage() {
                   <Pie data={CATEGORY_SPLIT} dataKey="value" nameKey="name" innerRadius={45} outerRadius={85}>
                     {CATEGORY_SPLIT.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v: number) => `R ${v.toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip formatter={(v) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -85,7 +85,7 @@ function CapexPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
-                <Tooltip formatter={(v: number) => `R ${v.toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <Tooltip formatter={(v) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                 <Line type="monotone" dataKey="spend" stroke="var(--chart-2)" strokeWidth={2.5} />
               </LineChart>
             </ResponsiveContainer>

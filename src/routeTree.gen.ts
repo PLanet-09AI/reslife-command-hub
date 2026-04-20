@@ -9,8 +9,62 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkflowsRouteImport } from './routes/workflows'
+import { Route as TeamRouteImport } from './routes/team'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResidencesRouteImport } from './routes/residences'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as FloorplansRouteImport } from './routes/floorplans'
+import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as CapexRouteImport } from './routes/capex'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WorkflowsRoute = WorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResidencesRoute = ResidencesRouteImport.update({
+  id: '/residences',
+  path: '/residences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FloorplansRoute = FloorplansRouteImport.update({
+  id: '/floorplans',
+  path: '/floorplans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsRoute = DocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CapexRoute = CapexRouteImport.update({
+  id: '/capex',
+  path: '/capex',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +73,158 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/capex': typeof CapexRoute
+  '/documents': typeof DocumentsRoute
+  '/floorplans': typeof FloorplansRoute
+  '/notifications': typeof NotificationsRoute
+  '/residences': typeof ResidencesRoute
+  '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/capex': typeof CapexRoute
+  '/documents': typeof DocumentsRoute
+  '/floorplans': typeof FloorplansRoute
+  '/notifications': typeof NotificationsRoute
+  '/residences': typeof ResidencesRoute
+  '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/capex': typeof CapexRoute
+  '/documents': typeof DocumentsRoute
+  '/floorplans': typeof FloorplansRoute
+  '/notifications': typeof NotificationsRoute
+  '/residences': typeof ResidencesRoute
+  '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
+  '/workflows': typeof WorkflowsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/activity'
+    | '/capex'
+    | '/documents'
+    | '/floorplans'
+    | '/notifications'
+    | '/residences'
+    | '/settings'
+    | '/team'
+    | '/workflows'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/activity'
+    | '/capex'
+    | '/documents'
+    | '/floorplans'
+    | '/notifications'
+    | '/residences'
+    | '/settings'
+    | '/team'
+    | '/workflows'
+  id:
+    | '__root__'
+    | '/'
+    | '/activity'
+    | '/capex'
+    | '/documents'
+    | '/floorplans'
+    | '/notifications'
+    | '/residences'
+    | '/settings'
+    | '/team'
+    | '/workflows'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
+  CapexRoute: typeof CapexRoute
+  DocumentsRoute: typeof DocumentsRoute
+  FloorplansRoute: typeof FloorplansRoute
+  NotificationsRoute: typeof NotificationsRoute
+  ResidencesRoute: typeof ResidencesRoute
+  SettingsRoute: typeof SettingsRoute
+  TeamRoute: typeof TeamRoute
+  WorkflowsRoute: typeof WorkflowsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workflows': {
+      id: '/workflows'
+      path: '/workflows'
+      fullPath: '/workflows'
+      preLoaderRoute: typeof WorkflowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/residences': {
+      id: '/residences'
+      path: '/residences'
+      fullPath: '/residences'
+      preLoaderRoute: typeof ResidencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/floorplans': {
+      id: '/floorplans'
+      path: '/floorplans'
+      fullPath: '/floorplans'
+      preLoaderRoute: typeof FloorplansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents': {
+      id: '/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capex': {
+      id: '/capex'
+      path: '/capex'
+      fullPath: '/capex'
+      preLoaderRoute: typeof CapexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +237,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
+  CapexRoute: CapexRoute,
+  DocumentsRoute: DocumentsRoute,
+  FloorplansRoute: FloorplansRoute,
+  NotificationsRoute: NotificationsRoute,
+  ResidencesRoute: ResidencesRoute,
+  SettingsRoute: SettingsRoute,
+  TeamRoute: TeamRoute,
+  WorkflowsRoute: WorkflowsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
