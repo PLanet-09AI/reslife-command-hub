@@ -12,7 +12,8 @@ import {
   Bell,
 } from "lucide-react";
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
+const NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/capex", label: "Capex", icon: BarChart3 },
