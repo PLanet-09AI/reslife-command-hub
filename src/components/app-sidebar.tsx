@@ -1,4 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { subscribeNotifications, type Notification } from "@/lib/notification-service";
 import {
   LayoutDashboard,
   FileText,
@@ -10,6 +13,7 @@ import {
   ScrollText,
   Settings,
   Bell,
+  LogOut,
 } from "lucide-react";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
@@ -28,6 +32,17 @@ const NAV: NavItem[] = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeNotifications(user.uid, (notifs: Notification[]) => {
+      setUnread(notifs.filter((n) => !n.read).length);
+    });
+    return unsub;
+  }, [user]);
+
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="px-5 py-5 border-b border-sidebar-border">
@@ -58,11 +73,25 @@ export function AppSidebar() {
               }`}
             >
               <Icon className="h-4 w-4" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.to === "/notifications" && unread > 0 && (
+                <span className="h-5 min-w-5 px-1 text-[10px] rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
+                  {unread}
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
+      <div className="px-2 py-2 border-t border-sidebar-border">
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground w-full transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Sign out</span>
+        </button>
+      </div>
       <div className="px-4 py-3 border-t border-sidebar-border text-[11px] text-sidebar-foreground/60">
         v1.0 · Durban University of Technology
       </div>
