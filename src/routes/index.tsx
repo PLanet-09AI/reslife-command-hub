@@ -90,7 +90,7 @@ function Dashboard() {
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
                   <Tooltip
                     contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                    formatter={(v) => `R ${Number(v).toLocaleString()}`}
+                    formatter={(v: number | string) => `R ${Number(v).toLocaleString()}`}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="budget" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
@@ -112,7 +112,7 @@ function Dashboard() {
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip formatter={(v: number | string) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -131,7 +131,7 @@ function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
-                <Tooltip formatter={(v) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <Tooltip formatter={(v: number | string) => `R ${Number(v).toLocaleString()}`} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                 <Line type="monotone" dataKey="spend" stroke="var(--chart-1)" strokeWidth={2.5} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
