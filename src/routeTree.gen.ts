@@ -14,6 +14,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResidencesRouteImport } from './routes/residences'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FloorplansRouteImport } from './routes/floorplans'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as CapexRouteImport } from './routes/capex'
@@ -43,6 +44,11 @@ const ResidencesRoute = ResidencesRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FloorplansRoute = FloorplansRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/capex': typeof CapexRoute
   '/documents': typeof DocumentsRoute
   '/floorplans': typeof FloorplansRoute
+  '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/capex': typeof CapexRoute
   '/documents': typeof DocumentsRoute
   '/floorplans': typeof FloorplansRoute
+  '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/capex': typeof CapexRoute
   '/documents': typeof DocumentsRoute
   '/floorplans': typeof FloorplansRoute
+  '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/capex'
     | '/documents'
     | '/floorplans'
+    | '/login'
     | '/notifications'
     | '/residences'
     | '/settings'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/capex'
     | '/documents'
     | '/floorplans'
+    | '/login'
     | '/notifications'
     | '/residences'
     | '/settings'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/capex'
     | '/documents'
     | '/floorplans'
+    | '/login'
     | '/notifications'
     | '/residences'
     | '/settings'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   CapexRoute: typeof CapexRoute
   DocumentsRoute: typeof DocumentsRoute
   FloorplansRoute: typeof FloorplansRoute
+  LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
   ResidencesRoute: typeof ResidencesRoute
   SettingsRoute: typeof SettingsRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/floorplans': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   CapexRoute: CapexRoute,
   DocumentsRoute: DocumentsRoute,
   FloorplansRoute: FloorplansRoute,
+  LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
   ResidencesRoute: ResidencesRoute,
   SettingsRoute: SettingsRoute,
@@ -250,3 +271,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
