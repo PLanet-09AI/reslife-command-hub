@@ -81,7 +81,7 @@ function useCollection<T>(collectionName: string, q?: ReturnType<typeof query>) 
   useEffect(() => {
     const ref = q ?? collection(db, collectionName);
     const unsubscribe = onSnapshot(ref, (snapshot) => {
-      setData(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T));
+      setData(snapshot.docs.map((doc) => ({ id: doc.id, ...(doc.data() as Record<string, unknown>) }) as T));
       setLoading(false);
     });
     return () => unsubscribe();

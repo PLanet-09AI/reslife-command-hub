@@ -1,118 +1,124 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useStatCards,
-  useBudgetByResidence,
-  useSpendTrend,
-  useCategorySpend,
-  useRecentActivity,
-  usePendingDocuments,
-} from "@/hooks/use-dashboard";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
+  CartesianGrid, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { ArrowUpRight, CheckCircle2, Clock, FileText } from "lucide-react";
+import { CheckCircle2, Clock, AlertTriangle, Circle, ArrowUpRight, Zap } from "lucide-react";
+import { useWorkflowStats } from "@/hooks/use-workflow-stats";
+import { useCurrentMember } from "@/hooks/use-team-members";
+import type { WfStatus } from "@/lib/workflow-service";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Dashboard — DUT ResLife360 Command Center" },
-      { name: "description", content: "Centralized dashboard for DUT Student Housing & Residence Life management." },
+      { name: "description", content: "Live workflow & procurement dashboard for DUT Student Housing." },
     ],
   }),
   component: Dashboard,
 });
 
-const PIE_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
-
-const toneClass = (tone: string) => {
-  switch (tone) {
-    case "primary": return "bg-primary/10 text-primary";
-    case "info": return "bg-info/10 text-info";
-    case "success": return "bg-success/10 text-success";
-    case "warning": return "bg-warning/20 text-warning-foreground";
-    default: return "bg-muted text-foreground";
-  }
+const STATUS_META: Record<WfStatus, { label: string; icon: typeof Circle; color: string; bg: string }> = {
+  completed:   { label: "Completed",   icon: CheckCircle2,  color: "text-success",            bg: "bg-success/10" },
+  in_progress: { label: "In Progress", icon: Clock,         color: "text-warning-foreground",  bg: "bg-warning/15" },
+  delayed:     { label: "Delayed",     icon: AlertTriangle, color: "text-destructive",          bg: "bg-destructive/10" },
+  not_started: { label: "Not Started", icon: Circle,        color: "text-muted-foreground",     bg: "bg-muted/60" },
 };
 
+const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
+
 function Dashboard() {
-  const { statCards, loading: loadingStats } = useStatCards();
-  const { budgetByResidence, loading: loadingBudget } = useBudgetByResidence();
-  const { spendTrend, loading: loadingTrend } = useSpendTrend();
-  const { categorySpend, loading: loadingCategory } = useCategorySpend();
-  const { activity, loading: loadingActivity } = useRecentActivity();
-  const { pendingDocuments, loading: loadingDocs } = usePendingDocuments();
+  const navigate = useNavigate();
+  const { member } = useCurrentMember();
+  const { stats, loading } = useWorkflowStats(member?.name);
+
+  const statCards = [
+    { key: "total",      label: "Total Workflows",  value: stats.total,      icon: Circle,        bg: "bg-primary/10",     color: "text-primary" },
+    { key: "inProgress", label: "In Progress",       value: stats.inProgress, icon: Clock,         bg: "bg-warning/15",     color: "text-warning-foreground" },
+    { key: "completed",  label: "Completed",         value: stats.completed,  icon: CheckCircle2,  bg: "bg-success/10",     color: "text-success" },
+    { key: "delayed",    label: "Delayed",            value: stats.delayed,    icon: AlertTriangle, bg: "bg-destructive/10", color: "text-destructive" },
+  ] as const;
+
+  const stepPieData = (["completed", "in_progress", "delayed", "not_started"] as WfStatus[])
+    .map((k) => ({ name: STATUS_META[k].label, value: stats.stepCounts[k] }))
+    .filter((d) => d.value > 0);
+
+  const greeting = member ? `Welcome back, ${member.name.split(" ")[0]}. Here's the live procurement status.` : "Live procurement status.";
 
   return (
-    <AppShell title="Dashboard" subtitle="Welcome back, Alvin. Here's what's happening today.">
+    <AppShell title="Dashboard" subtitle={greeting}>
       <div className="space-y-6">
+
         {/* Stat cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {loadingStats
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          {loading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <Card key={i}><CardContent className="p-5"><Skeleton className="h-16 w-full" /></CardContent></Card>
               ))
-            : statCards
-                .slice()
-                .sort((a, b) => ((a as unknown as { order: number }).order ?? 0) - ((b as unknown as { order: number }).order ?? 0))
-                .map((s) => (
-                  <Card key={s.id} className="overflow-hidden">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-xs uppercase tracking-wide text-muted-foreground">{s.label}</div>
-                          <div className="mt-2 text-2xl font-semibold">{s.value}</div>
-                        </div>
-                        <span className={`text-[11px] px-2 py-1 rounded-full ${toneClass(s.tone)}`}>{s.delta}</span>
+            : statCards.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <Card key={s.key} className="overflow-hidden">
+                    <CardContent className="p-5 flex items-center gap-3">
+                      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${s.bg}`}>
+                        <Icon className={`h-5 w-5 ${s.color}`} />
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">{s.label}</div>
+                        <div className="text-2xl font-semibold">{s.value}</div>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                );
+              })}
         </div>
 
-        {/* Charts */}
+        {/* My steps callout */}
+        {!loading && stats.myStepsTotal > 0 && (
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="font-semibold text-sm">
+                    You have {stats.myStepsTotal} step{stats.myStepsTotal > 1 ? "s" : ""} waiting for your action
+                  </div>
+                  <div className="text-xs text-muted-foreground">Go to My Work to complete your part</div>
+                </div>
+              </div>
+              <Button size="sm" onClick={() => navigate({ to: "/my-work" })}>
+                My Work <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Charts row */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           <Card className="xl:col-span-2">
-            <CardHeader className="flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Budget vs Actual by Residence</CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">FY 2025 — all residences</p>
-              </div>
-              <Button variant="outline" size="sm">Export</Button>
-            </CardHeader>
-            <CardContent className="h-72">
-              {loadingBudget ? (
-                <Skeleton className="h-full w-full" />
+            <CardHeader><CardTitle className="text-base">Workflows by Residence</CardTitle></CardHeader>
+            <CardContent className="h-64">
+              {loading ? <Skeleton className="h-full w-full" /> : stats.byResidence.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No workflows yet</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={budgetByResidence}>
+                  <BarChart data={stats.byResidence}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="residence" tick={{ fontSize: 11 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
-                    <Tooltip
-                      contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-                      formatter={((v: unknown) => `R ${Number(v).toLocaleString()}`) as never}
-                    />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="budget" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="actual" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="total" name="Total" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="completed" name="Completed" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="inProgress" name="In Progress" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -120,21 +126,17 @@ function Dashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Spend by Category</CardTitle>
-            </CardHeader>
-            <CardContent className="h-72">
-              {loadingCategory ? (
-                <Skeleton className="h-full w-full" />
+            <CardHeader><CardTitle className="text-base">Step Status Breakdown</CardTitle></CardHeader>
+            <CardContent className="h-64">
+              {loading ? <Skeleton className="h-full w-full" /> : stepPieData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No steps yet</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={categorySpend} dataKey="value" nameKey="name" innerRadius={50} outerRadius={85} paddingAngle={2}>
-                      {categorySpend.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
+                    <Pie data={stepPieData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={80}>
+                      {stepPieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                     </Pie>
-                    <Tooltip formatter={((v: unknown) => `R ${Number(v).toLocaleString()}`) as never} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -143,107 +145,72 @@ function Dashboard() {
           </Card>
         </div>
 
-        {/* Spend trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Monthly Spend Trend</CardTitle>
-          </CardHeader>
-          <CardContent className="h-64">
-            {loadingTrend ? (
-              <Skeleton className="h-full w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={spendTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R${v / 1000}k`} />
-                  <Tooltip formatter={((v: unknown) => `R ${Number(v).toLocaleString()}`) as never} contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
-                  <Line type="monotone" dataKey="spend" stroke="var(--chart-1)" strokeWidth={2.5} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent activity + pending */}
+        {/* Recent updates + health */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="text-base">Recent Activity</CardTitle>
-              <Button variant="ghost" size="sm">View all <ArrowUpRight className="h-3 w-3 ml-1" /></Button>
+              <CardTitle className="text-base">Recent Step Updates</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/workflows" })}>
+                All workflows <ArrowUpRight className="h-3 w-3 ml-1" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              {loadingActivity
+              {loading
                 ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)
-                : activity.map((a) => (
-                    <div key={a.id} className="flex items-start gap-3 text-sm">
-                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-[11px] font-semibold text-muted-foreground shrink-0">
-                        {a.user.split(" ").map((n) => n[0]).join("")}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">
-                          <span className="font-medium">{a.user}</span>{" "}
-                          <span className="text-muted-foreground">{a.action.toLowerCase()}</span>{" "}
-                          <span className="text-foreground">{a.target}</span>
+                : stats.recentUpdates.length === 0
+                  ? <div className="text-sm text-muted-foreground py-6 text-center">No updates yet — create a workflow to get started</div>
+                  : stats.recentUpdates.map((u, i) => {
+                      const m = STATUS_META[u.status];
+                      const Icon = m.icon;
+                      return (
+                        <div key={i} className="flex items-start gap-3 text-sm">
+                          <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 ${m.bg}`}>
+                            <Icon className={`h-3.5 w-3.5 ${m.color}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate font-medium">{u.wfName}</div>
+                            <div className="text-xs text-muted-foreground truncate">{u.stepName} · {u.assignee}</div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <Badge variant="outline" className={`text-[10px] ${m.color}`}>{m.label}</Badge>
+                            <div className="text-[10px] text-muted-foreground mt-0.5">{u.updated}</div>
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Clock className="h-3 w-3" />{a.time}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Pending Approvals</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {loadingDocs
-                ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
-                : pendingDocuments.map((d) => (
-                    <div key={d.id} className="flex items-start gap-3 p-3 rounded-md border border-border hover:bg-muted/40 transition">
-                      <FileText className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{d.name}</div>
-                        <div className="text-xs text-muted-foreground">{d.residence} · {d.owner}</div>
+            <CardHeader><CardTitle className="text-base">Workflow Health</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)
+                : (["completed", "in_progress", "delayed", "not_started"] as WfStatus[]).map((k) => {
+                    const m = STATUS_META[k];
+                    const count =
+                      k === "completed" ? stats.completed :
+                      k === "in_progress" ? stats.inProgress :
+                      k === "delayed" ? stats.delayed :
+                      stats.notStarted;
+                    const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+                    const Icon = m.icon;
+                    return (
+                      <div key={k}>
+                        <div className="flex items-center justify-between text-sm mb-1">
+                          <span className="flex items-center gap-1.5">
+                            <Icon className={`h-3.5 w-3.5 ${m.color}`} />{m.label}
+                          </span>
+                          <span className="text-muted-foreground">{count} ({pct}%)</span>
+                        </div>
+                        <Progress value={pct} className="h-1.5" />
                       </div>
-                      <Badge variant="secondary" className="shrink-0">{d.status}</Badge>
-                    </div>
-                  ))}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
-                <CheckCircle2 className="h-3 w-3 text-success" /> 11 approved this month
-              </div>
+                    );
+                  })}
             </CardContent>
           </Card>
         </div>
 
-        {/* Residence progress strip */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Residence Capex Utilization</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {loadingBudget
-              ? Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
-              : budgetByResidence.map((r) => {
-                  const pct = Math.round((r.actual / r.budget) * 100);
-                  return (
-                    <div key={r.id}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium">{r.residence}</span>
-                        <span className="text-muted-foreground">{pct}%</span>
-                      </div>
-                      <Progress value={pct} className="h-2" />
-                      <div className="text-xs text-muted-foreground mt-1">
-                        R {r.actual.toLocaleString()} / R {r.budget.toLocaleString()}
-                      </div>
-                    </div>
-                  );
-                })}
-          </CardContent>
-        </Card>
       </div>
     </AppShell>
   );

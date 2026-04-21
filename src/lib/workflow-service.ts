@@ -6,7 +6,6 @@ import {
   doc,
   onSnapshot,
   query,
-  where,
   orderBy,
   serverTimestamp,
   type Unsubscribe,
@@ -57,14 +56,9 @@ export type Workflow = {
 const COL = "workflows";
 
 export function subscribeWorkflows(
-  uid: string,
   callback: (workflows: Workflow[]) => void,
 ): Unsubscribe {
-  const q = query(
-    collection(db, COL),
-    where("createdBy", "==", uid),
-    orderBy("createdAt", "desc"),
-  );
+  const q = query(collection(db, COL), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
     const workflows = snap.docs.map((d) => ({
       ...(d.data() as Omit<Workflow, "id">),
