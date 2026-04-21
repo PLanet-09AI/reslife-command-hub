@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, setDoc, collection, writeBatch } from "firebase/firestore";
+import { getFirestore, doc, collection, writeBatch } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.VITE_FIREBASE_API_KEY,
@@ -77,6 +77,27 @@ async function main() {
     { id: "d4", name: "Laundry Maintenance SLA.pdf",          residence: "Winterton",     type: "Laundry",          status: "Approved",     owner: "Sihle Zulu",          updated: "2 days ago",  size: "1.8 MB" },
     { id: "d5", name: "Beds Replacement Schedule.xlsx",       residence: "Student Village",type: "Beds",            status: "Pending",      owner: "Sihle Zulu",          updated: "3 days ago",  size: "320 KB" },
     { id: "d6", name: "Garden Refurbishment Quote.pdf",       residence: "Stratford",     type: "Gardens",          status: "Rejected",     owner: "Phumlani Mnyango",    updated: "4 days ago",  size: "920 KB" },
+  ]);
+
+  await seedCollection("capexLineItems", [
+    { id: "c1",  item: "3-Seater Couches",        category: "Furniture",    qty: 24,  unit: 8500,  residence: "Steve Biko",     type: "Replacement" },
+    { id: "c2",  item: "Single Mattresses",        category: "Furniture",    qty: 180, unit: 2200,  residence: "Student Village",type: "Replacement" },
+    { id: "c3",  item: "Single Beds",              category: "Furniture",    qty: 120, unit: 3400,  residence: "Campbell",       type: "New"         },
+    { id: "c4",  item: "Bar Fridges (90L)",         category: "Equipment",    qty: 60,  unit: 4200,  residence: "Winterton",      type: "Replacement" },
+    { id: "c5",  item: "Double-Door Fridges (300L)",category: "Equipment",    qty: 12,  unit: 12500, residence: "Stratford",      type: "New"         },
+    { id: "c6",  item: "Microwaves",               category: "Equipment",    qty: 80,  unit: 1800,  residence: "Corlo Court",    type: "Replacement" },
+    { id: "c7",  item: "Washing Machines (10kg)",  category: "Equipment",    qty: 14,  unit: 18500, residence: "Steve Biko",     type: "New"         },
+    { id: "c8",  item: "Tumble Dryers (10kg)",     category: "Equipment",    qty: 14,  unit: 17200, residence: "Steve Biko",     type: "New"         },
+    { id: "c9",  item: "Air Conditioners",         category: "Equipment",    qty: 22,  unit: 14200, residence: "Campbell",       type: "New"         },
+    { id: "c10", item: "Stove Ovens",              category: "Equipment",    qty: 18,  unit: 9800,  residence: "Student Village",type: "Replacement" },
+    { id: "c11", item: "Desktop Computers",        category: "Computers",    qty: 30,  unit: 13500, residence: "All",            type: "New"         },
+  ]);
+
+  await seedCollection("floors", [
+    { id: "f1", residence: "Steve Biko", floor: "Ground Floor", rooms: 24, occupied: 21, vacant: 2, maintenance: 1 },
+    { id: "f2", residence: "Steve Biko", floor: "1st Floor",    rooms: 28, occupied: 25, vacant: 1, maintenance: 2 },
+    { id: "f3", residence: "Campbell",   floor: "Ground Floor", rooms: 20, occupied: 18, vacant: 2, maintenance: 0 },
+    { id: "f4", residence: "Campbell",   floor: "1st Floor",    rooms: 22, occupied: 20, vacant: 1, maintenance: 1 },
   ]);
 
   console.log("\nAll collections seeded.");

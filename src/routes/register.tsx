@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { RESIDENCES, ROLES } from "@/lib/mock-data";
+const RESIDENCES = ["Steve Biko", "Campbell", "Corlo Court", "Winterton", "Student Village", "Stratford"] as const;
+const ROLES = ["Admin", "Manager", "Coordinator", "Budget Officer", "Finance Officer", "Senior Admin", "Res Life Officer"] as const;
 
 export const Route = createFileRoute("/register")({
   head: () => ({

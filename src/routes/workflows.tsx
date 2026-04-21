@@ -16,7 +16,8 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { RESIDENCES, WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "@/lib/mock-data";
+import { WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "@/lib/workflow-service";
+const RESIDENCES = ["Steve Biko", "Campbell", "Corlo Court", "Winterton", "Student Village", "Stratford"] as const;
 import { useAuth } from "@/lib/auth-context";
 import {
   subscribeWorkflows,

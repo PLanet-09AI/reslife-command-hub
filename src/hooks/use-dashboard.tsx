@@ -52,6 +52,26 @@ export interface PendingDocument {
   size: string;
 }
 
+export interface CapexLineItem {
+  id: string;
+  item: string;
+  category: string;
+  qty: number;
+  unit: number;
+  residence: string;
+  type: string;
+}
+
+export interface Floor {
+  id: string;
+  residence: string;
+  floor: string;
+  rooms: number;
+  occupied: number;
+  vacant: number;
+  maintenance: number;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function useCollection<T>(collectionName: string, q?: ReturnType<typeof query>) {
@@ -103,4 +123,14 @@ export function usePendingDocuments() {
   const { data, loading } = useCollection<PendingDocument>("documents");
   const pending = data.filter((d) => d.status === "Pending" || d.status === "Under Review");
   return { pendingDocuments: pending, allDocuments: data, loading };
+}
+
+export function useCapexLineItems() {
+  const { data, loading } = useCollection<CapexLineItem>("capexLineItems");
+  return { capexLineItems: data, loading };
+}
+
+export function useFloors() {
+  const { data, loading } = useCollection<Floor>("floors");
+  return { floors: data, loading };
 }

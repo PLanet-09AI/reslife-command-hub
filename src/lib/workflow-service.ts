@@ -12,7 +12,26 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "./mock-data";
+
+export const WORKFLOW_STEPS = [
+  "Submission",
+  "Finance Processing",
+  "Requisition Approval",
+  "Senior Approval",
+  "Purchase Order",
+  "Delivery",
+  "Invoice & Payment",
+];
+
+export const WORKFLOW_ASSIGNEES = [
+  "Sihle Zulu",
+  "Sifiso Mvubu",
+  "Nonhlanhla Mbatha",
+  "Phumlani Mnyango",
+  "Procurement Office",
+  "Logistics",
+  "Finance Office",
+];
 
 export type WfStatus = "completed" | "in_progress" | "delayed" | "not_started";
 
