@@ -13,6 +13,7 @@ import { Route as WorkflowsRouteImport } from './routes/workflows'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResidencesRouteImport } from './routes/residences'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FloorplansRouteImport } from './routes/floorplans'
@@ -39,6 +40,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ResidencesRoute = ResidencesRouteImport.update({
   id: '/residences',
   path: '/residences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/floorplans': typeof FloorplansRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/register': typeof RegisterRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
   '/team': typeof TeamRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/floorplans': typeof FloorplansRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/register': typeof RegisterRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
   '/team': typeof TeamRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/floorplans': typeof FloorplansRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/register': typeof RegisterRoute
   '/residences': typeof ResidencesRoute
   '/settings': typeof SettingsRoute
   '/team': typeof TeamRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/floorplans'
     | '/login'
     | '/notifications'
+    | '/register'
     | '/residences'
     | '/settings'
     | '/team'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/floorplans'
     | '/login'
     | '/notifications'
+    | '/register'
     | '/residences'
     | '/settings'
     | '/team'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/floorplans'
     | '/login'
     | '/notifications'
+    | '/register'
     | '/residences'
     | '/settings'
     | '/team'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   FloorplansRoute: typeof FloorplansRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
+  RegisterRoute: typeof RegisterRoute
   ResidencesRoute: typeof ResidencesRoute
   SettingsRoute: typeof SettingsRoute
   TeamRoute: typeof TeamRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/residences'
       fullPath: '/residences'
       preLoaderRoute: typeof ResidencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   FloorplansRoute: FloorplansRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
+  RegisterRoute: RegisterRoute,
   ResidencesRoute: ResidencesRoute,
   SettingsRoute: SettingsRoute,
   TeamRoute: TeamRoute,
