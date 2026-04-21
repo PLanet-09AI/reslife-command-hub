@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
   type Workflow,
   type WfStatus,
 } from "@/lib/workflow-service";
+import { openAttachment, formatBytes, MAX_FILE_BYTES } from "@/lib/file-utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/my-work")({
@@ -52,6 +53,9 @@ function MyWorkPage() {
   const [loadingWf, setLoadingWf] = useState(true);
   const [noteMap, setNoteMap] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingAttach = useRef<{ wfId: string; stepIdx: number } | null>(null);
 
   useEffect(() => {
     const unsub = subscribeWorkflows((wfs) => { setWorkflows(wfs); setLoadingWf(false); });
@@ -86,15 +90,32 @@ function MyWorkPage() {
     }
   };
 
-  const attachProof = async (wfId: string, stepIdx: number) => {
+  const attachProof = (wfId: string, stepIdx: number) => {
+    pendingAttach.current = { wfId, stepIdx };
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingAttach.current) return;
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error("File too large", { description: `Max 750 KB. This file is ${formatBytes(file.size)}.` });
+      e.target.value = "";
+      return;
+    }
+    const { wfId, stepIdx } = pendingAttach.current;
     const wf = workflows.find((w) => w.id === wfId);
     if (!wf) return;
-    const fileName = `proof-${Date.now()}.pdf`;
+    setUploading(true);
     try {
-      await fbAddAttachment(wfId, wf.steps, stepIdx, fileName);
-      toast.success("Proof attached", { description: fileName });
+      await fbAddAttachment(wfId, wf.steps, stepIdx, file);
+      toast.success("Proof attached", { description: file.name });
     } catch {
       toast.error("Failed to attach proof");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+      pendingAttach.current = null;
     }
   };
 
@@ -191,9 +212,15 @@ function MyWorkPage() {
                   {step.attachments && step.attachments.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {step.attachments.map((a, ai) => (
-                        <Badge key={ai} variant="outline" className="font-normal text-xs gap-1">
+                        <button
+                          key={ai}
+                          onClick={() => openAttachment(a).catch(() => toast.error("Failed to open file"))}
+                          title={`Download ${a.name} (${formatBytes(a.size)})`}
+                          className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-border bg-muted/50 hover:bg-muted transition font-normal"
+                        >
                           <Paperclip className="h-3 w-3" />{a.name}
-                        </Badge>
+                          <span className="text-muted-foreground ml-1">{formatBytes(a.size)}</span>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -241,10 +268,10 @@ function MyWorkPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      disabled={isSaving}
+                      disabled={isSaving || uploading}
                       onClick={() => attachProof(wf.id, stepIdx)}
                     >
-                      <Paperclip className="h-3.5 w-3.5 mr-1" />Attach proof
+                      <Paperclip className="h-3.5 w-3.5 mr-1" />{uploading ? "Uploading…" : "Attach proof"}
                     </Button>
                   </div>
                 </CardContent>
@@ -253,6 +280,15 @@ function MyWorkPage() {
           })}
         </div>
       )}
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+        onChange={handleFileChange}
+      />
     </AppShell>
   );
 }

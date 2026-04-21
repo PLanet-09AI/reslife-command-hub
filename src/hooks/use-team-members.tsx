@@ -11,6 +11,7 @@ export interface TeamMember {
   residence: string;
   initials: string;
   active: boolean;
+  password?: string;
 }
 
 export function useTeamMembers() {

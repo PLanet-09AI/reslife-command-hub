@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ import {
   type Step,
   type WfStatus,
 } from "@/lib/workflow-service";
+import { openAttachment, formatBytes, MAX_FILE_BYTES } from "@/lib/file-utils";
 import { createNotification } from "@/lib/notification-service";
 import { toast } from "sonner";
 import {
@@ -67,6 +68,9 @@ function WorkflowsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<{ wfId: string; stepIdx: number } | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pendingAttach = useRef<{ wfId: string; stepIdx: number } | null>(null);
 
   useEffect(() => {
     const unsub = subscribeWorkflows(setWorkflows);
@@ -110,15 +114,32 @@ function WorkflowsPage() {
     }
   };
 
-  const addAttachment = async (wfId: string, stepIdx: number) => {
+  const addAttachment = (wfId: string, stepIdx: number) => {
+    pendingAttach.current = { wfId, stepIdx };
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingAttach.current) return;
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error("File too large", { description: `Maximum allowed size is 750 KB. This file is ${formatBytes(file.size)}.` });
+      e.target.value = "";
+      return;
+    }
+    const { wfId, stepIdx } = pendingAttach.current;
     const wf = workflows.find((w) => w.id === wfId);
     if (!wf) return;
-    const fileName = `proof-${Date.now()}.pdf`;
+    setUploading(true);
     try {
-      await fbAddAttachment(wfId, wf.steps, stepIdx, fileName);
-      toast.success("Attachment uploaded", { description: fileName });
+      await fbAddAttachment(wfId, wf.steps, stepIdx, file);
+      toast.success("Attachment saved", { description: file.name });
     } catch {
-      toast.error("Failed to add attachment");
+      toast.error("Failed to save attachment");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+      pendingAttach.current = null;
     }
   };
 
@@ -321,15 +342,21 @@ function WorkflowsPage() {
                           {s.attachments && s.attachments.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-2">
                               {s.attachments.map((a, ai) => (
-                                <Badge key={ai} variant="outline" className="font-normal gap-1">
+                                <button
+                                  key={ai}
+                                  onClick={() => openAttachment(a).catch(() => toast.error("Failed to open file"))}
+                                  title={`Download ${a.name} (${formatBytes(a.size)})`}
+                                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-border bg-muted/50 hover:bg-muted transition font-normal"
+                                >
                                   <FileText className="h-3 w-3" />{a.name}
-                                </Badge>
+                                  <span className="text-muted-foreground ml-1">{formatBytes(a.size)}</span>
+                                </button>
                               ))}
                             </div>
                           )}
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => addAttachment(wf.id, stepIdx)} title="Attach proof" disabled={!canEditStep(s)}>
+                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => addAttachment(wf.id, stepIdx)} title="Attach proof" disabled={!canEditStep(s) || uploading}>
                             <Paperclip className="h-3.5 w-3.5" />
                           </Button>
                           <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => canEditStep(s) && setEditing({ wfId: wf.id, stepIdx })} title={canEditStep(s) ? "Edit step" : `Only ${s.assignee} can edit`} disabled={!canEditStep(s)}>
@@ -373,6 +400,15 @@ function WorkflowsPage() {
           />
         )}
       </Dialog>
+
+      {/* Hidden file input for attachments */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+        onChange={handleFileChange}
+      />
     </AppShell>
   );
 }

@@ -11,6 +11,7 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { compressToBase64 } from "./file-utils";
 
 export const WORKFLOW_STEPS = [
   "Submission",
@@ -34,13 +35,20 @@ export const WORKFLOW_ASSIGNEES = [
 
 export type WfStatus = "completed" | "in_progress" | "delayed" | "not_started";
 
+export type Attachment = {
+  name: string;
+  type: string;    // MIME type
+  size: number;    // original file size in bytes
+  data: string;    // gzip-compressed, base64-encoded content
+};
+
 export type Step = {
   name: string;
   assignee: string;
   status: WfStatus;
   updated: string;
   action: string;
-  attachments?: { name: string }[];
+  attachments?: Attachment[];
 };
 
 export type Workflow = {
@@ -105,11 +113,18 @@ export async function addAttachment(
   workflowId: string,
   steps: Step[],
   stepIndex: number,
-  fileName: string,
-) {
+  file: File,
+): Promise<void> {
+  const data = await compressToBase64(file);
+  const attachment: Attachment = {
+    name: file.name,
+    type: file.type || "application/octet-stream",
+    size: file.size,
+    data,
+  };
   const updated = steps.map((s, i) =>
     i === stepIndex
-      ? { ...s, attachments: [...(s.attachments ?? []), { name: fileName }] }
+      ? { ...s, attachments: [...(s.attachments ?? []), attachment] }
       : s,
   );
   await updateDoc(doc(db, COL, workflowId), { steps: updated });
