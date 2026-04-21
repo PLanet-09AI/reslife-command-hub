@@ -14,11 +14,13 @@ import {
   Settings,
   Bell,
   LogOut,
+  Zap,
 } from "lucide-react";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
 const NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/my-work", label: "My Work", icon: Zap },
   { to: "/documents", label: "Documents", icon: FileText },
   { to: "/capex", label: "Capex", icon: BarChart3 },
   { to: "/workflows", label: "Workflows", icon: Workflow },

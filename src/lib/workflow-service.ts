@@ -6,13 +6,31 @@ import {
   doc,
   onSnapshot,
   query,
-  where,
   orderBy,
   serverTimestamp,
   type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "./mock-data";
+
+export const WORKFLOW_STEPS = [
+  "Submission",
+  "Finance Processing",
+  "Requisition Approval",
+  "Senior Approval",
+  "Purchase Order",
+  "Delivery",
+  "Invoice & Payment",
+];
+
+export const WORKFLOW_ASSIGNEES = [
+  "Sihle Zulu",
+  "Sifiso Mvubu",
+  "Nonhlanhla Mbatha",
+  "Phumlani Mnyango",
+  "Procurement Office",
+  "Logistics",
+  "Finance Office",
+];
 
 export type WfStatus = "completed" | "in_progress" | "delayed" | "not_started";
 
@@ -38,14 +56,9 @@ export type Workflow = {
 const COL = "workflows";
 
 export function subscribeWorkflows(
-  uid: string,
   callback: (workflows: Workflow[]) => void,
 ): Unsubscribe {
-  const q = query(
-    collection(db, COL),
-    where("createdBy", "==", uid),
-    orderBy("createdAt", "desc"),
-  );
+  const q = query(collection(db, COL), orderBy("createdAt", "desc"));
   return onSnapshot(q, (snap) => {
     const workflows = snap.docs.map((d) => ({
       ...(d.data() as Omit<Workflow, "id">),

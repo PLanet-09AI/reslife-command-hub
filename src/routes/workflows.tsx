@@ -16,8 +16,10 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { RESIDENCES, WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "@/lib/mock-data";
+import { WORKFLOW_STEPS, WORKFLOW_ASSIGNEES } from "@/lib/workflow-service";
+const RESIDENCES = ["Steve Biko", "Campbell", "Corlo Court", "Winterton", "Student Village", "Stratford"] as const;
 import { useAuth } from "@/lib/auth-context";
+import { useCurrentMember } from "@/hooks/use-team-members";
 import {
   subscribeWorkflows,
   createWorkflow as fbCreateWorkflow,
@@ -59,6 +61,7 @@ const nowStamp = () => {
 
 function WorkflowsPage() {
   const { user } = useAuth();
+  const { member: currentMember } = useCurrentMember();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -66,10 +69,13 @@ function WorkflowsPage() {
   const [editing, setEditing] = useState<{ wfId: string; stepIdx: number } | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    const unsub = subscribeWorkflows(user.uid, setWorkflows);
+    const unsub = subscribeWorkflows(setWorkflows);
     return unsub;
-  }, [user]);
+  }, []);
+
+  // A user can only edit a step if their name matches the assignee
+  const canEditStep = (step: Step) =>
+    !!currentMember && step.assignee === currentMember.name;
 
   const filtered = useMemo(() => {
     return workflows.filter((w) => {
@@ -275,17 +281,22 @@ function WorkflowsPage() {
                   {wf.steps.map((s, i) => {
                     const m = STATUS_META[s.status];
                     const Icon = m.icon;
+                    const myStep = canEditStep(s);
                     return (
                       <div key={i} className="flex items-center shrink-0">
                         <button
-                          onClick={() => setEditing({ wfId: wf.id, stepIdx: i })}
-                          className="flex flex-col items-center min-w-[110px] hover:opacity-80 transition group"
+                          onClick={() => myStep && setEditing({ wfId: wf.id, stepIdx: i })}
+                          disabled={!myStep}
+                          title={myStep ? "Update your step" : `Assigned to ${s.assignee}`}
+                          className={`flex flex-col items-center min-w-[110px] transition group ${myStep ? "hover:opacity-80 cursor-pointer" : "cursor-default opacity-70"}`}
                         >
-                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${m.color} group-hover:ring-2 ring-primary/40`}>
+                          <div className={`h-9 w-9 rounded-full flex items-center justify-center ${m.color} ${myStep ? "ring-2 ring-primary/60" : ""}`}>
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="text-[11px] mt-1.5 text-center font-medium leading-tight">{s.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{s.assignee}</div>
+                          <div className={`text-[10px] ${myStep ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+                            {myStep ? "▶ Your turn" : s.assignee}
+                          </div>
                         </button>
                         {i < wf.steps.length - 1 && (
                           <div className={`h-0.5 w-8 ${wf.steps[i].status === "completed" ? "bg-success" : "bg-border"}`} />
@@ -318,10 +329,10 @@ function WorkflowsPage() {
                           )}
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => addAttachment(wf.id, stepIdx)} title="Attach proof">
+                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => addAttachment(wf.id, stepIdx)} title="Attach proof" disabled={!canEditStep(s)}>
                             <Paperclip className="h-3.5 w-3.5" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditing({ wfId: wf.id, stepIdx })} title="Edit step">
+                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => canEditStep(s) && setEditing({ wfId: wf.id, stepIdx })} title={canEditStep(s) ? "Edit step" : `Only ${s.assignee} can edit`} disabled={!canEditStep(s)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                         </div>
